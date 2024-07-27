@@ -40,10 +40,10 @@ void main() {
     }else if (per <= 69 && per >= 60) {
       print("Grade: B");
       print("Remarks: Good");
-    }else if (per <= 59 && per <= 50) {
+    }else if (per <= 59 && per >= 50) {
       print("Grade: C");
         print("Remarks: Satisfactory");
-    }else if (per <= 49 && per <= 40) {
+    }else if (per <= 49 && per >= 40) {
       print("Grade: D"); 
       print("Remarks: Average");
     }else {
