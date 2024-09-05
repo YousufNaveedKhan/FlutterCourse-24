@@ -15,19 +15,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const Splash(),
+      home: const SplashScreen(),
     );
   }
 }
 
-class Splash extends StatefulWidget {
-  const Splash({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<Splash> createState() => _SplashState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashState extends State<Splash> {
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
@@ -35,7 +35,7 @@ class _SplashState extends State<Splash> {
       const Duration(seconds: 3),
       () => Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Screen()),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       ),
     );
   }
@@ -44,38 +44,28 @@ class _SplashState extends State<Splash> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Container(
-          height: double.infinity,
-          width: double.infinity,
-          child: Image.asset("assets/images/quran.png"),
-        ),
+        child: Image.asset("assets/images/quran.png"),
       ),
       backgroundColor: Colors.brown[900],
     );
   }
 }
 
-class Screen extends StatefulWidget {
-  const Screen({super.key});
+class MainScreen extends StatelessWidget {
+  const MainScreen({super.key});
 
-  @override
-  State<Screen> createState() => _ScreenState();
-}
-
-class _ScreenState extends State<Screen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Surahs()),
+                  MaterialPageRoute(builder: (context) => const SurahList()),
                 );
               },
               child: const Text("Quran"),
@@ -98,21 +88,14 @@ class _ScreenState extends State<Screen> {
   }
 }
 
-class Surahs extends StatefulWidget {
-  const Surahs({super.key});
+class SurahList extends StatelessWidget {
+  const SurahList({super.key});
 
-  @override
-  State<Surahs> createState() => _SurahsState();
-}
-
-class _SurahsState extends State<Surahs> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Surahs'),
-      ),
       body: ListView.builder(
+        itemCount: quran.totalSurahCount,
         itemBuilder: (context, index) {
           final surahIndex = index + 1;
           final surahName = quran.getSurahName(surahIndex);
@@ -125,7 +108,7 @@ class _SurahsState extends State<Surahs> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => DetailSurah(surahIndex)),
+                    builder: (context) => SurahDetail(surahIndex)),
               );
             },
             leading: CircleAvatar(
@@ -137,41 +120,36 @@ class _SurahsState extends State<Surahs> {
             ),
             title: Text(
               "$surahName | $surahNameArabic",
-              style: GoogleFonts.amiriQuran(),
+              style: GoogleFonts.amiriQuran(), // Ensure the font is available
             ),
             subtitle: Text(quran.getSurahNameEnglish(surahIndex)),
             trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 revelationPlace == 'Makkah'
                     ? Image.asset('assets/images/kaaba.png',
                         width: 30, height: 30)
                     : Image.asset('assets/images/madina.png',
                         width: 30, height: 30),
-                Text(
-                  "Verses: $verseCount",
-                  style: const TextStyle(fontSize: 10),
-                ),
+                Text("Verses: $verseCount",
+                    style: const TextStyle(fontSize: 10)),
               ],
             ),
           );
         },
-        itemCount: quran.totalSurahCount,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Icon(Icons.arrow_back),
       ),
     );
   }
 }
 
-class DetailSurah extends StatefulWidget {
-  final int index;
-  const DetailSurah(this.index, {super.key});
+class SurahDetail extends StatelessWidget {
+  final int surahIndex;
+  SurahDetail(this.surahIndex, {super.key}); // Remove 'const' here
 
-  @override
-  State<DetailSurah> createState() => _DetailSurahState();
-}
-
-class _DetailSurahState extends State<DetailSurah> {
-  // Updated Ayat-e-Sajdah list with correct Surah and Ayah numbers
   final List<Map<int, int>> ayatSajdahList = [
     {7: 206},
     {13: 15},
@@ -190,27 +168,20 @@ class _DetailSurahState extends State<DetailSurah> {
   ];
 
   bool isAyatSajdah(int surah, int ayah) {
-    for (var entry in ayatSajdahList) {
-      if (entry.containsKey(surah) && entry[surah] == ayah) {
-        return true;
-      }
-    }
-    return false;
+    return ayatSajdahList
+        .any((entry) => entry.containsKey(surah) && entry[surah] == ayah);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Surah Details'),
-      ),
       body: ListView.builder(
-        itemCount: quran.getVerseCount(widget.index),
+        itemCount: quran.getVerseCount(surahIndex),
         itemBuilder: (context, index) {
           final verseNumber = index + 1;
           final verse =
-              quran.getVerse(widget.index, verseNumber, verseEndSymbol: true);
-          final isSajdah = isAyatSajdah(widget.index, verseNumber);
+              quran.getVerse(surahIndex, verseNumber, verseEndSymbol: true);
+          final isSajdah = isAyatSajdah(surahIndex, verseNumber);
 
           return ListTile(
             title: Text(
@@ -224,25 +195,22 @@ class _DetailSurahState extends State<DetailSurah> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Icon(Icons.arrow_back),
+      ),
     );
   }
 }
 
-class SurahRecitation extends StatefulWidget {
+class SurahRecitation extends StatelessWidget {
   const SurahRecitation({super.key});
 
   @override
-  State<SurahRecitation> createState() => _SurahRecitationState();
-}
-
-class _SurahRecitationState extends State<SurahRecitation> {
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recitation'),
-      ),
       body: ListView.builder(
+        itemCount: quran.totalSurahCount,
         itemBuilder: (context, index) {
           final surahIndex = index + 1;
           final surahName = quran.getSurahName(surahIndex);
@@ -273,30 +241,31 @@ class _SurahRecitationState extends State<SurahRecitation> {
               ),
             ),
             trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 quran.getPlaceOfRevelation(surahIndex) == 'Makkah'
                     ? Image.asset('assets/images/kaaba.png',
                         width: 30, height: 30)
                     : Image.asset('assets/images/madina.png',
                         width: 30, height: 30),
-                Text(
-                  "Verses: ${quran.getVerseCount(surahIndex)}",
-                  style: const TextStyle(fontSize: 10),
-                ),
+                Text("Verses: ${quran.getVerseCount(surahIndex)}",
+                    style: const TextStyle(fontSize: 10)),
               ],
             ),
           );
         },
-        itemCount: quran.totalSurahCount,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Icon(Icons.arrow_back),
       ),
     );
   }
 }
 
 class Recitation extends StatefulWidget {
-  final int indexSurah;
-  const Recitation(this.indexSurah, {super.key});
+  final int surahIndex;
+  const Recitation(this.surahIndex, {super.key});
 
   @override
   State<Recitation> createState() => _RecitationState();
@@ -304,8 +273,9 @@ class Recitation extends StatefulWidget {
 
 class _RecitationState extends State<Recitation> {
   final AudioPlayer audioPlayer = AudioPlayer();
-  IconData playpauseButton = Icons.play_circle_fill_rounded;
+  IconData playPauseButton = Icons.play_circle_fill_rounded;
   bool isPlaying = false;
+  int? currentVerse;
 
   @override
   void dispose() {
@@ -313,65 +283,63 @@ class _RecitationState extends State<Recitation> {
     super.dispose();
   }
 
-  Future<void> togglePlayPause() async {
+  Future<void> playVerse(int verseNumber) async {
     try {
-      final audioUrl = await quran.getAudioURLBySurah(widget.indexSurah);
+      final audioUrl =
+          await quran.getAudioURLByVerse(widget.surahIndex, verseNumber);
       await audioPlayer.setUrl(audioUrl);
-
-      if (isPlaying) {
-        await audioPlayer.pause();
-        setState(() {
-          playpauseButton = Icons.play_circle_fill_rounded;
-          isPlaying = false;
-        });
-      } else {
-        await audioPlayer.play();
-        setState(() {
-          playpauseButton = Icons.pause_circle_filled_rounded;
-          isPlaying = true;
-        });
-      }
+      await audioPlayer.play();
+      setState(() {
+        playPauseButton = Icons.pause_circle_filled_rounded;
+        isPlaying = true;
+        currentVerse = verseNumber;
+      });
     } catch (e) {
       print("Error loading audio: $e");
+    }
+  }
+
+  Future<void> togglePlayPause() async {
+    if (isPlaying) {
+      await audioPlayer.pause();
+      setState(() {
+        playPauseButton = Icons.play_circle_fill_rounded;
+        isPlaying = false;
+      });
+    } else if (currentVerse != null) {
+      await audioPlayer.play();
+      setState(() {
+        playPauseButton = Icons.pause_circle_filled_rounded;
+        isPlaying = true;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recitation'),
+      body: ListView.builder(
+        itemCount: quran.getVerseCount(widget.surahIndex),
+        itemBuilder: (context, index) {
+          final verseNumber = index + 1;
+          final verse = quran.getVerse(widget.surahIndex, verseNumber,
+              verseEndSymbol: true);
+
+          return ListTile(
+            title: Text(
+              verse,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.amiriQuran(),
+            ),
+            onTap: () {
+              playVerse(verseNumber);
+            },
+          );
+        },
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            "سورۃ " + quran.getSurahNameArabic(widget.indexSurah),
-            style: GoogleFonts.amiriQuran(
-                textStyle: const TextStyle(fontSize: 30)),
-            textDirection: TextDirection.rtl,
-          ),
-          const SizedBox(height: 10),
-          Center(
-            child: CircleAvatar(
-              backgroundColor: const Color(0xff272729),
-              radius: 100,
-              backgroundImage: const AssetImage("assets/images/alaffasy.png"),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            color: const Color.fromARGB(255, 49, 13, 1),
-            child: Center(
-              child: IconButton(
-                onPressed: togglePlayPause,
-                icon: Icon(playpauseButton, color: Colors.white),
-                iconSize: 50,
-              ),
-            ),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: togglePlayPause,
+        child: Icon(playPauseButton, color: Colors.white),
       ),
     );
   }
